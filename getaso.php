@@ -1,11 +1,18 @@
 <?php
+
 /*
- * 功能:
+ * 34 11 * * * root cd /code/PHPExcel/aso && /usr/bin/php /code/PHPExcel/aso/getaso.php >>/code/PHPExcel/aso/error.log 2
+  >&1
  * 
  */
 define("DEBUG_LOGIN", false);
 define("DEBUG_FETCHPAGE", false);
-define("ASOTMPFILE", "tp.html");
+define("ASOTMPFILE", "asodata/tp.html");
+
+$header[] = 'User-Agent:Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36';
+$header[] = 'Accept:text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8';
+//$header[] = "Accept-Encoding:gzip, deflate, sdch";
+$header[] = "Accept-Language:zh-CN,zh;q=0.8,en;q=0.6";
 
 $sheet_header['A1'] = '关键词';
 $sheet_header['B1'] = '排名';
@@ -107,25 +114,33 @@ $ciarr[] = "直聘";
 
 //模拟登录
 function aso_login() {
+    global $header;
     if (DEBUG_LOGIN)
         return;
     $ch = curl_init();
 
     $url = "http://aso100.com/account/signinForm";
-
-    $data['username'] = "";
-    $data['password'] = "";
+    $data['username'] = "@163.com";
+    $data['password'] = ".";
 
     curl_setopt($ch, CURLOPT_URL, $url);
     curl_setopt($ch, CURLOPT_POST, 1);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+    curl_setopt($ch, CURLOPT_REFERER, "http://aso100.com/account/signin");
+    // curl_setopt($ch, CURLOPT_USERAGENT,$header['User-Agent']);
+
+    curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+ 
     curl_setopt($ch, CURLOPT_HEADER, 1);
-    curl_setopt($ch, CURLOPT_COOKIEJAR, 'cookiefile.txt');
+    curl_setopt($ch, CURLOPT_COOKIEJAR, 'asodata/cookiefile.txt');
     curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
-
+    foreach ($header as $k => $v) {
+        curl_setopt($ch, $k, $v);
+    }
     $result = curl_exec($ch);
-
     curl_close($ch);
+
+    echo $result;
 
     //$result = json_decode($result);
     // if ($result['code'] !="10000")
@@ -133,7 +148,6 @@ function aso_login() {
 
     preg_match_all('/^Set-Cookie:\s*([^;]*)/mi', $result, $matches);
     $cookies = array();
-
     foreach ($matches[1] as $item) {
         parse_str($item, $cookie);
         $cookies = array_merge($cookies, $cookie);
@@ -143,25 +157,25 @@ function aso_login() {
 
 //获取数据页面
 function get_asopage($cookies = "") {
+    global $header;
     if (DEBUG_FETCHPAGE)
         return true;
-
+    $referurl = "http://aso100.com/app/rank/appid/1055596148";
     $ch = curl_init();
     $url = "http://aso100.com/app/keyword/appid/1055596148";
-
     curl_setopt($ch, CURLOPT_URL, $url);
-
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
     curl_setopt($ch, CURLOPT_HEADER, 1);
-    curl_setopt($ch, CURLOPT_COOKIEFILE, 'cookiefile.txt');
-
+    curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+    curl_setopt($ch, CURLOPT_REFERER, $referurl);
+    curl_setopt($ch, CURLOPT_COOKIEFILE, 'asodata/cookiefile.txt');
     $result = curl_exec($ch);
     if (curl_errno($ch)) {
         echo 'Curl error: ' . curl_error($ch);
     }
+    curl_close($ch);
 
     file_put_contents(ASOTMPFILE, $result);
-    curl_close($ch);
     return $result;
 }
 
@@ -170,9 +184,7 @@ function get_json_byfile($msg = "") {
 
     $msg = file_get_contents(ASOTMPFILE);
     preg_match_all('/var tableData = (\[\[.*\]\])/mi', $msg, $matches);
-    //print_r($matches);
     $str = $matches[1][0];
-    //echo $str ;
     $arr = json_decode($str);
     return $arr;
 }
@@ -194,10 +206,8 @@ function parse_data($arr, $ci) {
         $name = $v[0];
         $arr_array = explode("#", $arr_1);
         $now_paiming = $arr_array[0];
-
         $arr_updown = $arr_array[1][0];
         if ($arr_updown == "-") {
-
             $updown_num = substr($arr_array[1], 1, strlen($arr_array[1]) - 1);
             $updown = "-";
             if ($updown_num == 0)
@@ -206,7 +216,6 @@ function parse_data($arr, $ci) {
             $updown = "+";
             $updown_num = $arr_array[1];
         }
-
         $search_num = $v[2];
         $rs_num = $v[3];
 
@@ -214,17 +223,12 @@ function parse_data($arr, $ci) {
         $returnarr[] = array($name, $now_paiming, $updown, $updown_num, $search_num, $rs_num);
     }
 
-
     return $returnarr;
 }
 
 function out_file($arr) {
-
-    $dir = "data";
-    if (!is_dir($dir))
-        mkdir($dir);
-
-    $file = $dir . "/" . date("Y-m-d") . ".txt";
+ 
+    $file =   "asodata/" . date("Y-m-d") . ".txt";
     $fp = fopen($file, "w");
     if ($fp) {
         foreach ($arr as $v) {
@@ -239,11 +243,10 @@ function saveexcel() {
     global $sheet_header;
     global $ciarr;
 
-    set_include_path(get_include_path() . PATH_SEPARATOR . '../Classes/');
-    include 'PHPExcel/IOFactory.php';
+    include 'PHPExcel-1.8/Classes/PHPExcel/IOFactory.php';
 
     $sheet = date("Y-m-d");
-    $file = "data/" . date("Ym") . ".xlsx";
+    $file = "asodata/" . date("Ym") . ".xlsx";
     if (!file_exists($file)) {
         $objPHPExcel = new PHPExcel();
         $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel2007');
@@ -251,11 +254,14 @@ function saveexcel() {
         $objPHPExcel = NULL;
         $objWriter = NULL;
     }
- 
-    copy($file, "data/bak_" . date("Ym") . ".xlsx") ;//备份
+
+    copy($file, "asodata/bak_" . date("Ym") . ".xlsx"); //备份
+
     $objPHPExcel = PHPExcel_IOFactory::load($file);
+    $count = $objPHPExcel->getSheetCount();
+
     $objPHPExcel->createSheet();
-    $objPHPExcel->setActiveSheetIndex(0);
+    $objPHPExcel->setActiveSheetIndex($count);
     $objPHPExcel->getActiveSheet()->setTitle($sheet);
 
     foreach ($sheet_header as $k => $v) {
@@ -263,12 +269,12 @@ function saveexcel() {
         //$objPHPExcel->setActiveSheetIndex(0)
         // ->setCellValue('A1', '关键词')
 
-        $objPHPExcel->setActiveSheetIndex(0)->setCellValue($k, $v);
+        $objPHPExcel->getActiveSheet()->setCellValue($k, $v);
         $objPHPExcel->getActiveSheet()->getStyle($k)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
         $objPHPExcel->getActiveSheet()->getStyle($k)->getFont()->setBold(true);
     }
 
-    $fileimport = "data/" . date("Y-m-d") . ".txt";
+    $fileimport = "asodata/" . date("Y-m-d") . ".txt";
     $dataarr = file($fileimport);
 
     $row = 2;
@@ -290,15 +296,18 @@ function saveexcel() {
     $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel2007');
     $objWriter->save($file);
 }
-
+sleep(rand(1,2000));
+if (!is_dir('asodata'))
+    mkdir('asodata');
+echo date("Y-m-d") . "_begin\r\n";
 $cookies = aso_login();
 $pagestr = get_asopage();
 $pagestr = get_json_byfile($pagestr);
 $arr = parse_data($pagestr, $ciarr); //解析数据
-if (count($arr)<=0) {
+if (count($arr) <= 0) {
     echo date("Y-m-d") . "_error\r\n";
-    exit ;
+    exit;
 }
-out_file($arr);//输出到文本文件
-saveexcel();//解析成excel，并备份上一次的文件
-
+out_file($arr); //输出到文本文件
+saveexcel(); //解析成excel，并备份上一次的文件
+echo date("Y-m-d") . "_end\r\n";
