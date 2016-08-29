@@ -202,8 +202,10 @@ function asoyzm_login($code) {
     $ch = curl_init();
 
     $url = "http://aso100.com/account/signinForm";
-    $data['username'] = "";
-    $data['password'] = "";
+    $data['username'] = "yaya_8777@163.com";
+    $data['password'] = "yaya870707.";
+    //$data['username'] = "";
+    //$data['password'] = "";
     $data['code'] = $code;
     curl_setopt($ch, CURLOPT_URL, $url);
     curl_setopt($ch, CURLOPT_POST, 1);
