@@ -4,6 +4,9 @@ define('ROOT', __DIR__ );
 
 include ROOT . DIRECTORY_SEPARATOR . 'PHPExcel-1.8/Classes/PHPExcel/IOFactory.php';
 
+    require ROOT . DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php';
+
+include ROOT . DIRECTORY_SEPARATOR . 'conf.php';
 define("DEBUG_LOGIN", true);
 define("DEBUG_FETCHPAGE", true);
 
@@ -197,10 +200,8 @@ function asoyzm_login($code) {
     $ch = curl_init();
 
     $url = "http://aso100.com/account/signinForm";
-    $data['username'] = "yaya_8777@163.com";
-    $data['password'] = "yaya870707.";
-    //$data['username'] = "";
-    //$data['password'] = "";
+    $data['username'] = ASONAME;
+    $data['password'] = ASOPWD;
     $data['code'] = $code;
     curl_setopt($ch, CURLOPT_URL, $url);
     curl_setopt($ch, CURLOPT_POST, 1);
@@ -370,11 +371,31 @@ function recordlog($msg) {
     fclose($fp);
 }
 
+function sendmail($from,$to=array(),$title="",$body="",$attr="") {
+
+global $SMTPSERVER;
+$mailer = new Nette\Mail\SmtpMailer($SMTPSERVER);
+$mail = new Nette\Mail\Message;
+$mail->setFrom($from)
+    ->setSubject($title)
+    ->setBody($body);
+
+foreach ($to as $v) {
+        $mail->addTo($v);
+}
+if ($attr!="")
+$mail->addAttachment($attr);
+
+$bool = $mailer->send($mail);
+}
+
 ////////////////////////////////////
 
+sendmail(MAILFROM,$REPORTMAILTO,'SS','ttt','');
+exit;
 if (!is_dir(PRODATA))
 mkdir(PRODATA);
-sleep(100,1000);
+sleep(rand(100,1000));
 recordlog("开始");
 get_asopage();
 $pagestr = get_json_byfile();
