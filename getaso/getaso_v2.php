@@ -1,10 +1,5 @@
 <?php
 
-/*
- * 34 11 * * * root cd /code/PHPExcel/aso && /usr/bin/php /code/PHPExcel/aso/getaso.php >>/code/PHPExcel/aso/error.log 2
-  >&1
- * 
- */
 define('ROOT', __DIR__ );
 
 include ROOT . DIRECTORY_SEPARATOR . 'PHPExcel-1.8/Classes/PHPExcel/IOFactory.php';
@@ -389,7 +384,7 @@ if (!$pagestr) {
     $sign = FALSE;
     $n = 1;
     while (!$sign) {
-	if ($n>15)
+	if ($n>25)
 		break;
         aso_yzm(); //下载验证码图片
         $code = check_yzm(); //读取验证码
