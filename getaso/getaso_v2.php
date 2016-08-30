@@ -7,8 +7,12 @@ include ROOT . DIRECTORY_SEPARATOR . 'PHPExcel-1.8/Classes/PHPExcel/IOFactory.ph
     require ROOT . DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php';
 
 include ROOT . DIRECTORY_SEPARATOR . 'conf.php';
+require_once ROOT . DIRECTORY_SEPARATOR . 'Image.class.php';
+
 define("DEBUG_LOGIN", true);
 define("DEBUG_FETCHPAGE", true);
+
+define("HASHFILE",ROOT . DIRECTORY_SEPARATOR . "hashddata.txt");
 
 define("PRODATA", ROOT . DIRECTORY_SEPARATOR . 'asodata');
 
@@ -185,9 +189,8 @@ function aso_yzm() {
 
 //
 function check_yzm() {
-    require_once 'Image.class.php';
-    $image = new \ImageOCR\Image();
-    $image->init(YZMIMGDESC);
+   $image = new \ImageOCR\Image();
+    $image->init(YZMIMGDESC,HASHFILE);
     $a = $image->find();
     //$image->draw();
     $code = implode("", $a);
@@ -389,13 +392,16 @@ $mail->addAttachment($attr);
 $bool = $mailer->send($mail);
 }
 
+function copyimg($code) {
+	$srcfile = YZMIMGDESC;
+	$descfile = PRODATA . DIRECTORY_SEPARATOR  . $code . ".png"; 
+	copy($srcfile,$descfile);
+}
 ////////////////////////////////////
 
-sendmail(MAILFROM,$REPORTMAILTO,'SS','ttt','');
-exit;
 if (!is_dir(PRODATA))
 mkdir(PRODATA);
-sleep(rand(100,1000));
+//sleep(rand(100,1000));
 recordlog("开始");
 get_asopage();
 $pagestr = get_json_byfile();
@@ -409,10 +415,12 @@ if (!$pagestr) {
 		break;
         aso_yzm(); //下载验证码图片
         $code = check_yzm(); //读取验证码
-        $sign = asoyzm_login($code);
-        recordlog("分析验证码" . $code . "_" . $n);
+        if ($code!="")
+	$sign = asoyzm_login($code);
+        recordlog("分析验证码_" . $code . "_" . $n);
 	$n++;
     }
+	copyimg($code);
 
     get_asopage();
     $pagestr = get_json_byfile();
@@ -420,12 +428,15 @@ if (!$pagestr) {
 
 
 if (!$pagestr) {
+
     recordlog("解析错误" . $code);
+	sendmail(MAILFROM,$ALMMAILTO,'ASODATA','解析错误','');
 } else {
 
     $arr = parse_data($pagestr);
     out_file($arr);
     saveexcel();
+    sendmail(MAILFROM,$REPORTMAILTO,'ASODATA','asodata',XLSFILE);
     recordlog("解析成功");
 }
 recordlog("结束");

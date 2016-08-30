@@ -9,7 +9,7 @@
 namespace ImageOCR;
 class Image{
 
-    const HASHFILE=  "hashddata.txt";
+    public  $HASHFILE=  "";
 
     //标准化的图像的宽高信息，可调
     const HASH_W = 10;
@@ -40,12 +40,14 @@ class Image{
 
     }
 
+
     public function parse($imgPath) {
 
     }
 
-    function init($imgPath) {
+    function init($imgPath,$hashfile) {
 
+	$this->HASHFILE = $hashfile;
         //判断图像的类型
         $res = exif_imagetype($imgPath);
 
@@ -399,7 +401,8 @@ class Image{
     }
 
     function getdatabyfile(){
-        $arr = file(self::HASHFILE);
+	 
+$arr = file($this->HASHFILE);
         if (!is_array($arr))
             return FALSE;
         foreach ($arr as $k=>$v) {
@@ -422,7 +425,7 @@ class Image{
         if (!is_array($samples)) 
             return TRUE;
 
-        $fp = fopen(self::HASHFILE,"a");
+        $fp = fopen($this->HASHFILE,"a");
         foreach ($samples as $v) {
             $code = $v['code'];
             $hash_data = $v['hash_data'];
@@ -435,9 +438,8 @@ class Image{
     //将训练数据导入到文本文件
     function adddatatofile($code,$hash_data){
 
-        echo self::HASHFILE ;
         
-         $fp = fopen(self::HASHFILE,"a");
+         $fp = fopen($this->HASHFILE,"a");
          fwrite($fp,$code . "_" . $hash_data . "\r\n");
          fclose($fp);
     }
