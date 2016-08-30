@@ -1,10 +1,10 @@
 <?php
 
-define('ROOT', __DIR__ );
+define('ROOT', __DIR__);
 
 include ROOT . DIRECTORY_SEPARATOR . 'PHPExcel-1.8/Classes/PHPExcel/IOFactory.php';
 
-    require ROOT . DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php';
+require ROOT . DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php';
 
 include ROOT . DIRECTORY_SEPARATOR . 'conf.php';
 require_once ROOT . DIRECTORY_SEPARATOR . 'Image.class.php';
@@ -12,7 +12,7 @@ require_once ROOT . DIRECTORY_SEPARATOR . 'Image.class.php';
 define("DEBUG_LOGIN", true);
 define("DEBUG_FETCHPAGE", true);
 
-define("HASHFILE",ROOT . DIRECTORY_SEPARATOR . "hashddata.txt");
+define("HASHFILE", ROOT . DIRECTORY_SEPARATOR . "hashddata.txt");
 
 define("PRODATA", ROOT . DIRECTORY_SEPARATOR . 'asodata');
 
@@ -28,7 +28,7 @@ define("ASOFILEFIX", date("Y-m-d-H"));
 define("ASOTMPFILE", PRODATA . DIRECTORY_SEPARATOR . ASOFILEFIX . '.html'); //读取的模版文件
 define("ASOOUTFILE", PRODATA . DIRECTORY_SEPARATOR . ASOFILEFIX . '.txt'); //生成的文本文件
 
-define("XLSFILE", PRODATA . DIRECTORY_SEPARATOR . date("Ym") . ".xlsx");//xls文件,每个月一个文件
+define("XLSFILE", PRODATA . DIRECTORY_SEPARATOR . date("Ym") . ".xlsx"); //xls文件,每个月一个文件
 
 
 define("LOGFILE", PRODATA . DIRECTORY_SEPARATOR . "record.txt");
@@ -189,8 +189,8 @@ function aso_yzm() {
 
 //
 function check_yzm() {
-   $image = new \ImageOCR\Image();
-    $image->init(YZMIMGDESC,HASHFILE);
+    $image = new \ImageOCR\Image();
+    $image->init(YZMIMGDESC, HASHFILE);
     $a = $image->find();
     //$image->draw();
     $code = implode("", $a);
@@ -374,34 +374,35 @@ function recordlog($msg) {
     fclose($fp);
 }
 
-function sendmail($from,$to=array(),$title="",$body="",$attr="") {
+function sendmail($from, $to = array(), $title = "", $body = "", $attr = "") {
 
-global $SMTPSERVER;
-$mailer = new Nette\Mail\SmtpMailer($SMTPSERVER);
-$mail = new Nette\Mail\Message;
-$mail->setFrom($from)
-    ->setSubject($title)
-    ->setBody($body);
+    global $SMTPSERVER;
+    $mailer = new Nette\Mail\SmtpMailer($SMTPSERVER);
+    $mail = new Nette\Mail\Message;
+    $mail->setFrom($from)
+            ->setSubject($title)
+            ->setBody($body);
 
-foreach ($to as $v) {
+    foreach ($to as $v) {
         $mail->addTo($v);
-}
-if ($attr!="")
-$mail->addAttachment($attr);
+    }
+    if ($attr != "")
+        $mail->addAttachment($attr);
 
-$bool = $mailer->send($mail);
+    $bool = $mailer->send($mail);
 }
 
 function copyimg($code) {
-	$srcfile = YZMIMGDESC;
-	$descfile = PRODATA . DIRECTORY_SEPARATOR  . $code . ".png"; 
-	copy($srcfile,$descfile);
+    $srcfile = YZMIMGDESC;
+    $descfile = PRODATA . DIRECTORY_SEPARATOR . $code . ".png";
+    copy($srcfile, $descfile);
 }
+
 ////////////////////////////////////
 
 if (!is_dir(PRODATA))
-mkdir(PRODATA);
-//sleep(rand(100,1000));
+    mkdir(PRODATA);
+sleep(rand(100, 1000));
 recordlog("开始");
 get_asopage();
 $pagestr = get_json_byfile();
@@ -411,16 +412,16 @@ if (!$pagestr) {
     $sign = FALSE;
     $n = 1;
     while (!$sign) {
-	if ($n>25)
-		break;
+        if ($n > 25)
+            break;
         aso_yzm(); //下载验证码图片
         $code = check_yzm(); //读取验证码
-        if ($code!="")
-	$sign = asoyzm_login($code);
+        if ($code != "")
+            $sign = asoyzm_login($code);
         recordlog("分析验证码_" . $code . "_" . $n);
-	$n++;
+        $n++;
     }
-	copyimg($code);
+    copyimg($code);
 
     get_asopage();
     $pagestr = get_json_byfile();
@@ -430,13 +431,13 @@ if (!$pagestr) {
 if (!$pagestr) {
 
     recordlog("解析错误" . $code);
-	sendmail(MAILFROM,$ALMMAILTO,'ASODATA','解析错误','');
+    sendmail(MAILFROM, $ALMMAILTO, 'ASODATA', '解析错误', '');
 } else {
 
     $arr = parse_data($pagestr);
     out_file($arr);
     saveexcel();
-    sendmail(MAILFROM,$REPORTMAILTO,'ASODATA','asodata',XLSFILE);
+    sendmail(MAILFROM, $REPORTMAILTO, 'ASODATA', 'asodata', XLSFILE);
     recordlog("解析成功");
 }
 recordlog("结束");
