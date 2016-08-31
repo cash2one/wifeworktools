@@ -1,4 +1,5 @@
 <?php
+//https://packagist.org/packages/nette/mail
 
 define('ROOT', __DIR__);
 
@@ -381,7 +382,7 @@ function sendmail($from, $to = array(), $title = "", $body = "", $attr = "") {
     $mail = new Nette\Mail\Message;
     $mail->setFrom($from)
             ->setSubject($title)
-            ->setBody($body);
+            ->setHTMLBody($body);
 
     foreach ($to as $v) {
         $mail->addTo($v);
@@ -398,11 +399,32 @@ function copyimg($code) {
     copy($srcfile, $descfile);
 }
 
+function parsehtml() {
+	global $sheet_header ;
+	$str = "<table border=\"1\" width=\"500px;\">";
+	  foreach ($sheet_header as $k => $v) {
+		$str .= "<th>$v</th>";
+	}
+	$arr = file(ASOOUTFILE) ;
+	  foreach ($arr as $v) {
+
+        $v = trim($v);
+        if ($v == "")
+            continue;
+        $tmpstr = explode("_", $v);
+	$str .="<tr>";
+		foreach ($tmpstr as $v)
+        	$str .= "<td>$v</td>";
+	$str .="</tr>";
+    	}
+	$str .= "</table>";
+return $str ;
+}
 ////////////////////////////////////
 
 if (!is_dir(PRODATA))
     mkdir(PRODATA);
-sleep(rand(100, 1000));
+#sleep(rand(100, 1000));
 recordlog("开始");
 get_asopage();
 $pagestr = get_json_byfile();
@@ -434,10 +456,10 @@ if (!$pagestr) {
     sendmail(MAILFROM, $ALMMAILTO, 'ASODATA', '解析错误', '');
 } else {
 
-    $arr = parse_data($pagestr);
-    out_file($arr);
-    saveexcel();
-    sendmail(MAILFROM, $REPORTMAILTO, 'ASODATA', 'asodata', XLSFILE);
+    //$arr = parse_data($pagestr);
+    //out_file($arr);
+    //saveexcel();
+   	sendmail(MAILFROM, $REPORTMAILTO, 'ASODATA', parsehtml(), XLSFILE);
     recordlog("解析成功");
 }
 recordlog("结束");
