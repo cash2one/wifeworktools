@@ -28,8 +28,9 @@ function get_extension($file) {
     return substr($file, strrpos($file, '.') + 1);
 }
 
+//循环建目录
 function pmkdir($dir) {
-
+    $mkdir = "";
     $arr = explode("/", $dir);
 
     foreach ($arr as $v) {
@@ -41,33 +42,20 @@ function pmkdir($dir) {
     }
 }
 
+//从目录下读取文件，并将文件路径名存储为数组
 function preaddir($dir) {
     $d = dir($dir);
     $arr = array();
     while (false !== ($entry = $d->read())) {
         if ($entry == "." || $entry == "..")
             continue;
-
         $arr[] = array($dir, $entry);
     }
     $d->close();
     return $arr;
 }
 
-//初始化目录
-function initdir($action, $date) {
-
-    switch ($action) {
-        case "dsf":
-            $srcdir = "srcdata/" . $action . "/" . $date;
-            $dir = "descdata/{$action}/{$date}";
-            pmkdir($dir);
-
-            return array('srcdir' => $srcdir, 'descdir' => $dir);
-            break;
-    }
-}
-
+//处理第三方数据类
 class dsfexcelfx {
 
     public $action = "";
@@ -107,10 +95,9 @@ class dsfexcelfx {
             $filep = $this->descdir . "/" . $k;
             foreach ($v as $kk => $vv) {
                 if (OS == "windows")
-                    $file = $filep . "_" . iconv("UTF-8", "GBK", $kk) . ".txt";
+                    $file = $filep . "_" . trim(iconv("UTF-8", "GBK", $kk)) . ".txt";
                 else
-                    $file = $filep . "_" . $kk . ".txt";
-
+                    $file = $filep . "_" . trim($kk) . ".txt";
                 $fp = fopen($file, "w");
                 foreach ($vv as $vvv) {
                     fwrite($fp, $vvv . "\r\n");
@@ -193,6 +180,34 @@ class dmexcelfx {
         $this->descdir = $dir;
     }
 
+    //date标准格式应该 = 20160701
+    public function parsedate($date) {
+
+
+        $date = str_replace("年", "", $date);
+        $date = str_replace("月", "", $date);
+        $date = str_replace("日", "", $date);
+
+ 
+         $ym = substr($date, 0, 4) . "0" . substr($date, 4, 1) ;
+         $d = (substr($date, 5))<10?"0".substr($date, 5):substr($date, 5);
+          $str =  $ym . $d   ;
+    
+        return $str ;
+
+        //   $date = substr($date,0,4) . "0"  , 
+
+        $tmpdata = explode("/", $date);
+        $d_y = $tmpdata[0];
+        $d_m = $tmpdata[1];
+        $d_d = $tmpdata[2];
+        $tpmdata = explode(" ", $d_d);
+        $d_d = $tpmdata [0];
+        $d_m = ($d_m < 10) ? "0" . $d_m : $d_m;
+        $d_d = ($d_d < 10) ? "0" . $d_d : $d_d;
+        return $d_y . $d_m . $d_d;
+    }
+
     public function getexcel($dir, $file) {
         $inputFileName = $dir . "/" . $file;
         if (get_extension($inputFileName) == "xls")
@@ -244,6 +259,10 @@ class dmexcelfx {
                 $date = trim($v[$g_date]);
                 if ($date == "" || $sj == "")
                     continue;
+            
+               
+                $date = $this->parsedate($date);
+  
                 $this->data[$date][$sj] = 1;
             }
         }
@@ -302,28 +321,28 @@ class fx {
     }
 
     function parse() {
-
+ 
         $filearr = preaddir($this->dsfdir);
+ 
         $this->data = array();
         $tmpfile = $this->fxdir . "/tmp.log";
         foreach ($filearr as $k => $v) {
             $dsffile_prex = $v[1];
-
+        
             $tmpdata = explode("_", $dsffile_prex);
             $g_date = $tmpdata[0];
             $g_type = $tmpdata[1];
-            $g_type = str_replace(".txt", "", $g_type);
-
+            $g_type = str_replace(".txt", "",$g_type );
+        
             $dsffile = $v[0] . "/" . $v[1];
             $dmfile = $this->dmdir . "/" . $g_date . ".txt";
-            $sxfile = $this->sxdir . "/" . $g_date . $g_type; //筛选文件
+            $sxfile = $this->sxdir . "/" . $g_date . $g_type . ".txt"; //筛选文件
 
             $cmd = "sort {$dsffile} {$dmfile}  | uniq -d >{$tmpfile} && sort {$dsffile} {$tmpfile}| uniq -u > {$sxfile}  ";
             system($cmd);
             $this->data[] = array($g_date, $g_type, $this->getfilecount($tmpfile), $this->getfilecount($dsffile));
         }
         unlink($tmpfile);
-        print_r($this->data);
     }
 
     function writedata() {
@@ -347,22 +366,25 @@ class fx {
             $t = explode("_", $v);
             if ($t[2] / $t[3] < 0.95) {
                 $file = $this->sxdir . "/" . $t[0] . $t[1] . ".txt";
-                $tmp = file($file);
+echo $file . "\r\n";
+		$tmp = file($file);
                 foreach ($tmp as $v) {
                     $v = trim($v);
                     if ($v != "")
-                        $this->data[] = array($t[0], $t[1], $v);
-        
+                        $this->data[] = array($t[0],$t[1],$v);
+
+                    //fwrite($fp, $t[1] . "_" . $t[2] . "_" . $v . "\r\n");
                 }
             }
         }
-        $fp = fopen($this->fxdifffile, "w");
-        if ($fp) {
-            foreach ($this->data as $v) {
-                fwrite($fp, implode("_", $v) . "\r\n");
-            }
-            fclose($fp);
-        }
+ 
+	$fp = fopen($this->fxdifffile, "w");
+	if ($fp) {
+		foreach ($this->data as $v) {
+			fwrite($fp,implode("_",$v) . "\r\n");
+		}
+		fclose($fp);
+	}
     }
 
 }
@@ -370,11 +392,12 @@ class fx {
 $action = $argv[1];
 $date = $argv[2]; //日期
 
-
-$date = "2016062";
+$action = "dm";
+$date = "2016083";
 
 switch ($action) {
     case "dsf":
+        //文件名应该是 20160607这样的前缀
         $obj = new dsfexcelfx($action, $date);
         $obj->initdir();
         $obj->importexcel();
@@ -382,7 +405,7 @@ switch ($action) {
         break;
 
     case "dm":
-
+        //excel 里面日期的标准格式是20160607,假如不是需要做些修改
         $obj = new dmexcelfx($action, $date);
         $obj->initdir();
         $obj->importexcel();
@@ -392,14 +415,16 @@ switch ($action) {
     case "fx":
         $obj = new fx($date);
         $obj->initdir();
+	echo "start";
         $obj->parse();
+
         $obj->writedata();
         break;
     case "export":
-    
+
         $obj = new fx($date);
         $obj->initdir();
-        $obj->exportdata();
-        break;
+	$obj->exportdata();
+  break;
 }
         
