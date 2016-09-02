@@ -14,14 +14,11 @@
  */
 error_reporting(E_ALL);
 set_time_limit(0);
-ini_set("memory_limit", "2000M");
+ini_set("memory_limit", "1000M");
 date_default_timezone_set('Europe/London');
 
 define('OS', 'linux');
 
-if (OS == "windows")
-    include 'Classes/PHPExcel/IOFactory.php';
-else
     include 'PHPExcel-1.8/Classes/PHPExcel/IOFactory.php';
 
 function get_extension($file) {
@@ -392,8 +389,8 @@ echo $file . "\r\n";
 $action = $argv[1];
 $date = $argv[2]; //日期
 
-$action = "dm";
-$date = "2016083";
+//$action = "dm";
+//$date = "2016083";
 
 switch ($action) {
     case "dsf":
