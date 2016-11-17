@@ -147,6 +147,12 @@ $ciarr[] = "校园招聘";
 $ciarr[] = "上海招聘";
 $ciarr[] = "求职招聘";
 $ciarr[] = "企业招聘";
+$ciarr[] = "免费赚钱";
+$ciarr[] = "轻松赚钱";
+$ciarr[] = "手机赚钱软件";
+$ciarr[] = "手机赚钱app";
+$ciarr[] = "分享赚钱";
+$ciarr[] = "赚钱app";
 
 function parseimg($argv) {
     $filename = $argv[0];
@@ -182,6 +188,7 @@ function aso_yzm() {
     curl_setopt($ch, CURLOPT_COOKIEJAR, COOKIEYZM);
 
     $result = curl_exec($ch);
+     echo $result . "SS";
     curl_close($ch);
     file_put_contents(YZMIMGSRC, $result);
 
@@ -359,9 +366,14 @@ function saveexcel() {
             foreach ($clarr[$v] as $kk => $vv) {
                 $objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow($kk++, $row, $vv);
             }
-            $row++;
-        }
-    }
+
+        } else {
+		$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(0,$row,$v);	
+		$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(1,$row,"-");	
+		$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(2,$row,"-");	
+		$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(3,$row,"-");	
+	}
+                $row++;}
 
     $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel2007');
     $objWriter->save($file);
@@ -434,7 +446,7 @@ if (!$pagestr) {
     $sign = FALSE;
     $n = 1;
     while (!$sign) {
-        if ($n > 25)
+        if ($n > 35)
             break;
         aso_yzm(); //下载验证码图片
         $code = check_yzm(); //读取验证码
@@ -452,14 +464,15 @@ if (!$pagestr) {
 
 if (!$pagestr) {
 
-    recordlog("解析错误" . $code);
+    recordlog("解析错误" );
     sendmail(MAILFROM, $ALMMAILTO, 'ASODATA', '解析错误', '');
 } else {
 
-    //$arr = parse_data($pagestr);
-    //out_file($arr);
-    //saveexcel();
-   	sendmail(MAILFROM, $REPORTMAILTO, 'ASODATA', parsehtml(), XLSFILE);
+    $arr = parse_data($pagestr);
+    out_file($arr);
+    saveexcel();
+    //sendmail(MAILFROM, $REPORTMAILTO, 'ASODATA', parsehtml(), XLSFILE);
+    sendmail(MAILFROM, $REPORTMAILTO, 'ASODATA', "ok_{$n}", XLSFILE);
     recordlog("解析成功");
 }
 recordlog("结束");
