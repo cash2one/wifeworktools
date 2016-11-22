@@ -153,6 +153,11 @@ $ciarr[] = "手机赚钱软件";
 $ciarr[] = "手机赚钱app";
 $ciarr[] = "分享赚钱";
 $ciarr[] = "赚钱app";
+$ciarr[] = "微信赚钱";
+$ciarr[] = "签到赚钱";
+$ciarr[] = "服务赚钱";
+$ciarr[] = "免费挣钱";
+$ciarr[] = "扫码赚钱";
 
 function parseimg($argv) {
     $filename = $argv[0];
