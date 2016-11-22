@@ -173,22 +173,24 @@ class dmexcelfx {
 
     //date标准格式应该 = [20160701]
     public function parsedate($date) {
+        
+        /*
         $date = str_replace("年", "", $date);
         $date = str_replace("月", "", $date);
         $date = str_replace("日", "", $date);
         $ym = substr($date, 0, 4) . "0" . substr($date, 4, 1);
         $d = (substr($date, 5)) < 10 ? "0" . substr($date, 5) : substr($date, 5);
         $str = $ym . $d;
-
+ 
         return $str;
-
+*/
         //   $date = substr($date,0,4) . "0"  , 
         $tmpdata = explode("/", $date);
         $d_y = $tmpdata[0];
         $d_m = $tmpdata[1];
         $d_d = $tmpdata[2];
-        $tpmdata = explode(" ", $d_d);
-        $d_d = $tpmdata [0];
+        //$tpmdata = explode(" ", $d_d);
+        //$d_d = $tpmdata [0];
         $d_m = ($d_m < 10) ? "0" . $d_m : $d_m;
         $d_d = ($d_d < 10) ? "0" . $d_d : $d_d;
         return $d_y . $d_m . $d_d;
@@ -233,20 +235,25 @@ class dmexcelfx {
               )
              */
             foreach ($type as $k => $v) {
-                if ($v == "idfa")
+                if (strtolower($v) == "idfa")
                     $g_key = $k;
 
-                if ($v == "date")
+                if (strtolower($v) == "date")
                     $g_date = $k;
             }
 
+    
             foreach ($sheetData as $k => $v) {
                 $sj = trim($v[$g_key]);
                 $date = trim($v[$g_date]);
                 if ($date == "" || $sj == "")
                     continue;
 
+                    //echo $date  . "\n" ;
                 $date = $this->parsedate($date);
+                   //echo $date  . "\n" ;
+    
+    
                 $this->data[$date][$sj] = 1;
             }
         }
@@ -426,17 +433,22 @@ class fx {
 $action = $argv[1];
 $date = $argv[2]; //日期
 
+<<<<<<< HEAD
 //$action = "export";
 //$date = "2016083";
+=======
+//$action = "dm";
+//$date = "2016091";
+>>>>>>> ffa0e057cc89b6e5bc78e6a321bc2a62ce9451d4
 
 switch ($action) {
     case "dsf":
         //文件名应该是 [20160607]这样的前缀
-	$obj = new dsfexcelfx($action, $date);
+        $obj = new dsfexcelfx($action, $date);
+
         $obj->initdir();
         $obj->importexcel();
         $obj->writedata();
-        echo "sss";
         break;
 
     case "dm":

@@ -186,6 +186,7 @@ function aso_yzm() {
 
     curl_setopt($ch, CURLOPT_COOKIEJAR, COOKIEYZM);
     $result = curl_exec($ch);
+     echo $result . "SS";
     curl_close($ch);
     file_put_contents(YZMIMGSRC, $result);
 
