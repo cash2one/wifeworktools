@@ -26,7 +26,9 @@ define("YZMIMGDESC", PRODATA . DIRECTORY_SEPARATOR . "yzmdesc.png");
 //假如手动运行,可以替换该常量
 define("ASOFILEFIX", date("Y-m-d-H"));
 
-define("ASOTMPFILE", PRODATA . DIRECTORY_SEPARATOR . ASOFILEFIX . '.html'); //读取的模版文件
+define("ASOTMPFILE", PRODATA . DIRECTORY_SEPARATOR .  'aso.html'); //读取的模版文件
+//define("ASOTMPFILE", PRODATA . DIRECTORY_SEPARATOR . ASOFILEFIX . '.html'); //读取的模版文件
+
 define("ASOOUTFILE", PRODATA . DIRECTORY_SEPARATOR . ASOFILEFIX . '.txt'); //生成的文本文件
 
 define("XLSFILE", PRODATA . DIRECTORY_SEPARATOR . date("Ym") . ".xlsx"); //xls文件,每个月一个文件
@@ -247,7 +249,7 @@ function get_json_byfile() {
 
 function get_asopage($cookies = "") {
     global $header;
-	//return file_get_contents(ASOTMPFILE);
+return file_get_contents(ASOTMPFILE);
     $referurl = "http://aso100.com/app/rank/appid/1055596148";
     $ch = curl_init();
     $url = "http://aso100.com/app/keyword/appid/1055596148";

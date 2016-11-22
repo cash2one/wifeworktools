@@ -17,7 +17,7 @@ set_time_limit(0);
 ini_set("memory_limit", "1000M");
 date_default_timezone_set('Europe/London');
 
-define('OS', 'windows');
+define('OS', 'linux');
 include 'PHPExcel-1.8/Classes/PHPExcel/IOFactory.php';
 
 function get_extension($file) {
@@ -426,16 +426,17 @@ class fx {
 $action = $argv[1];
 $date = $argv[2]; //日期
 
-$action = "export";
-$date = "2016083";
+//$action = "export";
+//$date = "2016083";
 
 switch ($action) {
     case "dsf":
         //文件名应该是 [20160607]这样的前缀
-        $obj = new dsfexcelfx($action, $date);
+	$obj = new dsfexcelfx($action, $date);
         $obj->initdir();
         $obj->importexcel();
         $obj->writedata();
+        echo "sss";
         break;
 
     case "dm":
