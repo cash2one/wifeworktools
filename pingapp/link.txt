@@ -1,0 +1,31 @@
+ 
+
+appmarket = 'qq'
+appid = 'com.wanyou.law'   //1.1万
+635 :  http://android.myapp.com/myapp/detail.htm?apkName=com.wanyou.law    
+
+
+appmarket = '360'
+appid = '2589662'  
+30 : http://zhushou.360.cn/detail/index/soft_id/2589662
+
+
+appmarket = 'baidu' 
+appid = '7862221' 
+112 : http://shouji.baidu.com/soft/item?docid=7100646&from=3
+
+ 
+appmarket = 'anzhi'
+appid = '2041970'
+300+ : http://www.anzhi.com/soft_2041970.html
+ 
+appmarket = 'pp'
+appmarket = 'huawei'
+appmarket = 'coolmart' 
+
+dddddddddddddddd
+ddd 
+
+
+ccc1111
+ddd2222adasddsadsadsa
